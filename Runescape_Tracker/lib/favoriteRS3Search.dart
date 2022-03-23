@@ -10,14 +10,9 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> Favorite() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Directory directory = await getApplicationDocumentsDirectory();
 
-  Hive.init(directory.path);
-  await Hive.openBox("FavPlayers");
-  //var deleteAll = await Hive.openBox("favoritePlayer");
-  //deleteAll.clear();
 
-  Hive.registerAdapter(PlayerAdapter());
+
 
   runApp(const MyAppFav());
 }
@@ -48,7 +43,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    FavoriteBox = Hive.box("FavPlayers");
     super.initState();
   }
 
@@ -63,27 +57,7 @@ class _HomeState extends State<Home> {
           children: [
             Expanded(
                 child: Center(
-                  child: ValueListenableBuilder(
-                    valueListenable: FavoriteBox.listenable(),
-                    builder: (context, Box FavPlayers, _) {
-                      return ListView.separated(
-                        itemBuilder: (ctx, i) {
-                          final key = FavPlayers.keys.toList()[i];
-                          var value = FavPlayers.get(key);
-                          value = value.split(",");
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ListTile(
-                              title: Text(value),
-                            )
-                          );
-                        },
-                        separatorBuilder: (_, i) => const Divider(),
-                        itemCount: FavPlayers.keys.length,
-                      );
-                    },
-                  ),
-                )),
+                  child: Text("Testing"))),
           ],
         ),
       ),

@@ -7,19 +7,12 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'favoriteRS3Search.dart';
-
-late Box box;
+import 'package:intl/intl.dart';
+import 'testing.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Directory directory = await getApplicationDocumentsDirectory();
-
-  Hive.init(directory.path);
-  //await Hive.openBox("searchPlayer");
-  var deleteAll = await Hive.openBox("searchPlayer");
-  deleteAll.clear();
-
-  Hive.registerAdapter(PlayerAdapter());
 
   runApp(const MyApp());
 }
@@ -58,9 +51,39 @@ class searchedStats {
 }
 
 class _HomeState extends State<Home> {
-
   late Box PlayerBox;
   var skillNames = {
+    30: "Overall",
+    0: "Attack",
+    1: "Defence",
+    2: "Strength",
+    3: "Constitution",
+    4: "Ranged",
+    5: "Prayer",
+    6: "Magic",
+    7: "Cooking",
+    8: "Woodcutting",
+    9: "Fletching",
+    10: "Fishing",
+    11: "Firemaking",
+    12: "Crafting",
+    13: "Smithing",
+    14: "Mining",
+    15: "Herblore",
+    16: "Agility",
+    17: "Thieving",
+    18: "Slayer",
+    19: "Farming",
+    20: "Runecrafting",
+    21: "Hunter",
+    22: "Construction",
+    23: "Summoning",
+    24: "Dungeoneering",
+    25: "Divination",
+    26: "Invention",
+    27: "Archaeology",
+  };
+  var skillNamesv2 = {
     0: "Overall",
     1: "Attack",
     2: "Defence",
@@ -94,10 +117,12 @@ class _HomeState extends State<Home> {
   final _idController = TextEditingController();
   final _nameController = TextEditingController();
   final _playerVarController = TextEditingController();
+  NumberFormat myFormat = NumberFormat.decimalPattern('en_us');
+  var playerDataList = [];
+  var searchedName = '';
 
   @override
   void initState() {
-    PlayerBox = Hive.box("searchPlayer");
     super.initState();
   }
 
@@ -107,111 +132,122 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text("Runescape 3 Hiscores"),
       ),
+      drawer: Drawer(
+        // Add a ListView to the drawer. This ensures the user can scroll
+        // through the options in the drawer if there isn't enough vertical
+        // space to fit everything.
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text('Drawer Header'),
+            ),
+            ListTile(
+              title: const Text('Item 1'),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MyAppFav())).then((value) {
+                  setState(() {// closes app drawer after returning from vehicle screen
+                  });
+                });
+              },
+            ),
+            ListTile(
+              title: const Text('Item 2'),
+              onTap: () {
+                // Update the state of the app.
+                // ...
+              },
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
+                child: Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [Text("Searched Player: $searchedName")],
+              ),
+            )),
+            Expanded(
+                flex: 8,
                 child: Center(
-                  child: ValueListenableBuilder(
-                    valueListenable: PlayerBox.listenable(),
-                    builder: (context, Box searchPlayer, _) {
-                      return ListView.separated(
-                        itemBuilder: (ctx, i) {
-                          final key = searchPlayer.keys.toList()[i];
-                          var value = searchPlayer.get(key);
-                          value = value.split(",");
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceEvenly,
-                                  children: [
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(
-                                                skillNames[key].toString()),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(value[1]),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(value[2]),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(value[0]),
-                                          ),
-                                        )),
-                                  ]),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (_, i) => const Divider(),
-                        itemCount: searchPlayer.keys.length,
-                      );
-                    },
-                  ),
+                  child: FutureBuilder<List<SkillValuesSQL>>(
+                      future: DatabaseHelper.instance.getList(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<List<SkillValuesSQL>> snapshot) {
+                        if (!snapshot.hasData) {
+                          print(snapshot);
+                          return Center(child: Text('Loading...'));
+                        }
+                        return snapshot.data!.isEmpty
+                            ? Center(child: Text('No items in List'))
+                            : ListView(
+                                children: snapshot.data!.map((SkillValuesSQL) {
+                                  return Center(
+                                      child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Expanded(
+                                                child: Center(
+                                              child: Container(
+                                                child: Text(skillNamesv2[
+                                                        int.parse(SkillValuesSQL
+                                                            .skillId)]
+                                                    .toString()),
+                                              ),
+                                            )),
+                                            Expanded(
+                                                child: Center(
+                                              child: Container(
+                                                child:
+                                                    Text(SkillValuesSQL.level),
+                                              ),
+                                            )),
+                                            Expanded(
+                                                child: Center(
+                                              child: Container(
+                                                child: Text(myFormat.format(
+                                                    int.parse(
+                                                        SkillValuesSQL.xp))),
+                                              ),
+                                            )),
+                                            Expanded(
+                                                child: Center(
+                                              child: Container(
+                                                child: Text(myFormat.format(
+                                                    int.parse(
+                                                        SkillValuesSQL.rank))),
+                                              ),
+                                            )),
+                                          ]),
+                                    ),
+                                  ));
+                                }).toList(),
+                              );
+                      }),
                 )),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
                   child: const Text("Create"),
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (_) {
-                          return Dialog(
-                            child: SizedBox(
-                              height: 200,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        label: const Text("Key"),
-                                      ),
-                                      controller: _idController,
-                                    ),
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        label: Text("Value"),
-                                      ),
-                                      controller: _nameController,
-                                    ),
-                                    SizedBox(
-                                      height: 16,
-                                    ),
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          final key = _idController.text;
-                                          final value = _nameController.text;
-
-                                          PlayerBox.put(key, value);
-
-                                          _nameController.clear();
-                                          _idController.clear();
-
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text("Submit"))
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        });
+                  onPressed: () async {
+                    await DatabaseHelper.instance.dropInsert();
+                    setState(() {});
                   },
                 ),
                 ElevatedButton(
@@ -244,32 +280,12 @@ class _HomeState extends State<Home> {
                                           _playerVarController.clear();
 
                                           Navigator.pop(context);
-                                          int counter = 0;
-                                          try {
-                                            var cleanPlayerVar = playerVar
-                                                .replaceAll(" ", "%20");
-                                            var runescapeAPIData = await http
-                                                .read(Uri.parse(
-                                                'https://secure.runescape.com/m=hiscore/index_lite.ws?player=$cleanPlayerVar'));
-                                            print(runescapeAPIData.runtimeType);
-                                            var splitRunescapeAPIData = runescapeAPIData
-                                                .split("\n");
-                                            var tempVar;
-                                            var key;
-                                            var value;
-                                            for (tempVar in splitRunescapeAPIData) {
-                                              if (counter < 29) {
-                                                key = counter;
-                                                value = tempVar;
-                                                //print("key is: $key");
-                                                //print("value is: $value");
-                                                counter += 1;
-                                                PlayerBox.put(key, value);
-                                              }
-                                            }
-                                          } catch (e) {
-                                            print(e);
-                                          }
+                                          await DatabaseHelper.instance
+                                              .dropInsert();
+                                          await returnSkillList(playerVar);
+                                          setState(() {
+                                            searchedName = playerVar;
+                                          });
                                         },
                                         child: const Text("Submit"))
                                   ],
@@ -281,9 +297,12 @@ class _HomeState extends State<Home> {
                   },
                 ),
                 ElevatedButton(
-                  child: const Text("Print"),
-                  onPressed: () {},
-                ),
+                    child: const Text("Print"),
+                    onPressed: () async {
+                      await DatabaseHelper.instance.dropInsert();
+                      await returnSkillList('madoshi');
+                      setState(() {});
+                    })
               ],
             )
           ],
@@ -291,5 +310,4 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
 }
