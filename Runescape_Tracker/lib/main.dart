@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:async/async.dart';
+import 'package:runescape_tracker/searchPlayer.dart';
 import 'db_helper.dart';
 import 'dart:io';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'favoriteRS3Search.dart';
 import 'package:intl/intl.dart';
 import 'testing.dart';
+import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'package:favorite_button/favorite_button.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,11 +22,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Home(),
     );
   }
 }
-
+var searchedPlayerName;
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -35,23 +35,7 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
-class searchedStats {
-  searchedStats({required this.id, required this.skills});
-
-  @HiveField(0)
-  int id;
-
-  @HiveField(1)
-  String skills;
-
-  @override
-  String toString() {
-    return id.toString();
-  }
-}
-
 class _HomeState extends State<Home> {
-  late Box PlayerBox;
   var skillNames = {
     30: "Overall",
     0: "Attack",
@@ -114,199 +98,75 @@ class _HomeState extends State<Home> {
     27: "Invention",
     28: "Archaeology",
   };
-  final _idController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _playerVarController = TextEditingController();
   NumberFormat myFormat = NumberFormat.decimalPattern('en_us');
   var playerDataList = [];
   var searchedName = '';
 
+  int _currentIndex = 0;
+  late PageController _pageController;
+
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Runescape 3 Hiscores"),
+        title: searchedPlayerName,
+        actions: [
+          StarButton(
+            iconSize: 45,
+            valueChanged: (isStarred) {
+              print('Is Favorite $isStarred)');
+            },
+          )
+        ],
       ),
-      drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text('Drawer Header'),
-            ),
-            ListTile(
-              title: const Text('Item 1'),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MyAppFav())).then((value) {
-                  setState(() {// closes app drawer after returning from vehicle screen
-                  });
-                });
-              },
-            ),
-            ListTile(
-              title: const Text('Item 2'),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-          ],
-        ),
+      body: PageView(
+        scrollDirection: Axis.horizontal,
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+          _pageController.jumpToPage(index);
+        },
+        controller: _pageController,
+        children: [
+          searchPlayer(),
+          MyAppFav(),
+        ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-                child: Container(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [Text("Searched Player: $searchedName")],
-              ),
-            )),
-            Expanded(
-                flex: 8,
-                child: Center(
-                  child: FutureBuilder<List<SkillValuesSQL>>(
-                      future: DatabaseHelper.instance.getList(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<List<SkillValuesSQL>> snapshot) {
-                        if (!snapshot.hasData) {
-                          print(snapshot);
-                          return Center(child: Text('Loading...'));
-                        }
-                        return snapshot.data!.isEmpty
-                            ? Center(child: Text('No items in List'))
-                            : ListView(
-                                children: snapshot.data!.map((SkillValuesSQL) {
-                                  return Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Expanded(
-                                                child: Center(
-                                              child: Container(
-                                                child: Text(skillNamesv2[
-                                                        int.parse(SkillValuesSQL
-                                                            .skillId)]
-                                                    .toString()),
-                                              ),
-                                            )),
-                                            Expanded(
-                                                child: Center(
-                                              child: Container(
-                                                child:
-                                                    Text(SkillValuesSQL.level),
-                                              ),
-                                            )),
-                                            Expanded(
-                                                child: Center(
-                                              child: Container(
-                                                child: Text(myFormat.format(
-                                                    int.parse(
-                                                        SkillValuesSQL.xp))),
-                                              ),
-                                            )),
-                                            Expanded(
-                                                child: Center(
-                                              child: Container(
-                                                child: Text(myFormat.format(
-                                                    int.parse(
-                                                        SkillValuesSQL.rank))),
-                                              ),
-                                            )),
-                                          ]),
-                                    ),
-                                  ));
-                                }).toList(),
-                              );
-                      }),
-                )),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  child: const Text("Create"),
-                  onPressed: () async {
-                    await DatabaseHelper.instance.dropInsert();
-                    setState(() {});
-                  },
-                ),
-                ElevatedButton(
-                  child: const Text("Search"),
-                  onPressed: () async {
-                    showDialog(
-                        context: context,
-                        builder: (_) {
-                          return Dialog(
-                            child: SizedBox(
-                              height: 175,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        label: const Text("Player Name"),
-                                      ),
-                                      controller: _playerVarController,
-                                    ),
-                                    SizedBox(
-                                      height: 16,
-                                    ),
-                                    ElevatedButton(
-                                        onPressed: () async {
-                                          final playerVar =
-                                              _playerVarController.text;
-
-                                          _playerVarController.clear();
-
-                                          Navigator.pop(context);
-                                          await DatabaseHelper.instance
-                                              .dropInsert();
-                                          await returnSkillList(playerVar);
-                                          setState(() {
-                                            searchedName = playerVar;
-                                          });
-                                        },
-                                        child: const Text("Submit"))
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        });
-                  },
-                ),
-                ElevatedButton(
-                    child: const Text("Print"),
-                    onPressed: () async {
-                      await DatabaseHelper.instance.dropInsert();
-                      await returnSkillList('madoshi');
-                      setState(() {});
-                    })
-              ],
-            )
-          ],
-        ),
+      bottomNavigationBar: BottomNavyBar(
+        selectedIndex: _currentIndex,
+        onItemSelected: (index) {
+          setState(() => _currentIndex = index);
+          _pageController.jumpToPage(index);
+        },
+        items: <BottomNavyBarItem>[
+          BottomNavyBarItem(
+              title: Text('Item One'),
+              icon: Icon(Icons.home)
+          ),
+          BottomNavyBarItem(
+              title: Text('Item Two'),
+              icon: Icon(Icons.apps)
+          ),
+          BottomNavyBarItem(
+              title: Text('Item Three'),
+              icon: Icon(Icons.chat_bubble)
+          ),
+          BottomNavyBarItem(
+              title: Text('Item Four'),
+              icon: Icon(Icons.settings)
+          ),
+        ],
       ),
     );
   }

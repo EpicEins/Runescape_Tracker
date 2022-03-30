@@ -201,3 +201,16 @@ returnSkillList(playerName) async {
     }
   }
 }
+
+returnAlog(playerName) async{
+  var runescapeAPIData = await http
+      .read(Uri.parse(
+      'https://apps.runescape.com/runemetrics/profile/profile?user=$playerName&activities=20'));
+  //print(runescapeAPIData);
+  Map<String, dynamic> userMap = jsonDecode(runescapeAPIData);
+  var user = User.fromJson(userMap);
+
+  for (var i in user.activities) {
+    print(i);
+  }
+}

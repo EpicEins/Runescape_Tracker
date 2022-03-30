@@ -17,7 +17,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, 'main01.db');
+    String path = join(documentsDirectory.path, 'main02.db');
     return await openDatabase(path, version: 1, onCreate: (Database db, int version) async {
       await db.execute('''CREATE TABLE userData (id INTEGER PRIMARY KEY, xp TEXT, level TEXT, rank TEXT, skillId TEXT)''');
       print("Something initialized");
