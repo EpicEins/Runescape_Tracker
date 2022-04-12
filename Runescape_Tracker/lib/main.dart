@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+var items = [];
 var searchedPlayerName;
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -121,7 +122,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: searchedPlayerName,
+        title: Text("testing"),
         actions: [
           StarButton(
             iconSize: 45,

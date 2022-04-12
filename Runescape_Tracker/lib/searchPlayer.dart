@@ -113,16 +113,16 @@ class _HomeState extends State<searchPlayer> {
                         icon: Icon(Icons.search),
                       ),
                       controller: _searchBarController,
-                      onSubmitted: (value) {
+                      onSubmitted: (value) async {
+                        final playerVar = _searchBarController.text;
+                        searchedPlayerName = playerVar;
 
+                        await DatabaseHelper.instance.dropInsert();
+                        await returnSkillList(playerVar);
                         value = _searchBarController.text;
                         returnAlog(value);
-                        setState(() async {
-                          final playerVar = _searchBarController.text;
-                          searchedPlayerName = playerVar;
+                        setState(() {
 
-                          await DatabaseHelper.instance.dropInsert();
-                          await returnSkillList(playerVar);
                           setState(() {
                             searchedName = playerVar;
                           });

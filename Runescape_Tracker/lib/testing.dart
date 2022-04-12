@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
+
+import 'main.dart';
 /*
 main() async {
   var settings = ConnectionSettings(
@@ -186,6 +188,7 @@ returnSkillList(playerName) async {
           level: i.level.toString(),
           rank: result.toString(),
           xp: i.xp.toString(),
+          playerName: playerName.toString(),
         )
       );
     } else {
@@ -196,6 +199,7 @@ returnSkillList(playerName) async {
             level: i.level.toString(),
             rank: i.rank.toString(),
             xp: i.xp.toString(),
+            playerName: playerName.toString(),
           )
       );
     }
@@ -213,4 +217,32 @@ returnAlog(playerName) async{
   for (var i in user.activities) {
     print(i);
   }
+}
+
+
+testingSQL() async {
+/*
+  var settings = ConnectionSettings(
+      host: '192.185.4.67',
+      port: 3306,
+      user: 'epischen_burgest',
+      password: 'Mv!R2NFZ]Kh)',
+      db: 'epischen_hiscoresMain'
+  );
+
+   */
+  var settings = ConnectionSettings(
+      host: '192.185.4.67',
+      port: 3306,
+      user: 'epischen_admin2',
+      password: 'Lansing002',
+      db: 'epischen_grandExchangeItems');
+  var conn = await MySqlConnection.connect(settings);
+
+  var results = await conn.query("select * from items where name like '%matto%'");
+  for (var i in results) {
+    items.add(i);
+    print(i);
+  }
+// print(results);
 }
