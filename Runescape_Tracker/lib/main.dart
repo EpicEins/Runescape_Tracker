@@ -8,11 +8,27 @@ import 'package:intl/intl.dart';
 import 'testing.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:favorite_button/favorite_button.dart';
+import 'globalVars.dart';
+import 'package:search_page/search_page.dart';
+class Person {
+  final String name, description;
+  final String id;
 
+  Person(this.name, this.description, this.id);
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Directory directory = await getApplicationDocumentsDirectory();
+  var futureItems = await DatabaseHelper.instance.getList();
+  await futureItems;
 
+  itemNames.clear();
+  for (var i in await futureItems) {
+
+    itemNames.add(Person(i.name, i.description,i.id)
+    );
+  }
+  print(itemNames);
   runApp(const MyApp());
 }
 
@@ -140,10 +156,65 @@ class _HomeState extends State<Home> {
         },
         controller: _pageController,
         children: [
-          searchPlayer(),
           MyAppFav(),
+          searchPlayer(),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.search),
+        tooltip: 'Search Items',
+        onPressed: () => showSearch(
+          context: context,
+          delegate: SearchPage<Person>(
+            items: itemNames,
+            searchLabel: 'Search Items',
+            suggestion: Center(
+              child: Text('Filter people by name, surname or age'),
+            ),
+            failure: Center(
+              child: Text('No person found :('),
+            ),
+            filter: (person) => [
+              person.name,
+              person.description,
+              person.id.toString(),
+            ],
+            builder: (person) => ListTile(
+              onTap: () async {
+                await searchGE(person.id);
+                showModalBottomSheet<void>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Container(
+                      height: 200,
+                      color: Colors.amber,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(testDataGlobal['item']['name']),
+                            Text(testDataGlobal['item']['description']),
+                            Text(testDataGlobal['item']['current']['price']),
+                            ElevatedButton(
+                              child: const Text('Close BottomSheet'),
+                              onPressed: () => Navigator.pop(context),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              title: Text(person.name),
+              subtitle: Text(person.description),
+              trailing: Text('${person.id} yo'),
+            ),
+          ),
+        ),
+      ),
+
       bottomNavigationBar: BottomNavyBar(
         selectedIndex: _currentIndex,
         onItemSelected: (index) {

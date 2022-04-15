@@ -141,6 +141,7 @@ class _HomeState extends State<searchPlayer> {
                     icon: Icon(Icons.clear))
               ],
             ),
+            /*
             Expanded(
                 flex: 8,
                 child: Center(
@@ -203,6 +204,8 @@ class _HomeState extends State<searchPlayer> {
                               );
                       }),
                 )),
+
+             */
           ],
         ),
       ),

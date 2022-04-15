@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
-
+import 'globalVars.dart';
 import 'main.dart';
 /*
 main() async {
@@ -218,7 +218,12 @@ returnAlog(playerName) async{
     print(i);
   }
 }
-
+searchGE(itemID) async {
+  var geItemAPIData = await http.read(Uri.parse('https://services.runescape.com/m=itemdb_rs/api/catalogue/detail.json?item=$itemID'));
+  var parsedData = jsonDecode(geItemAPIData);
+  print(parsedData);
+  testDataGlobal = parsedData;
+}
 
 testingSQL() async {
 /*
@@ -246,3 +251,4 @@ testingSQL() async {
   }
 // print(results);
 }
+
