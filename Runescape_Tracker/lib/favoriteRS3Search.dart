@@ -83,7 +83,7 @@ class _HomeState extends State<MyAppFav> {
                                         context: context,
                                         builder: (BuildContext context) {
                                           return Container(
-                                            height: 200,
+                                            height: 300,
                                             color: Color.fromRGBO(24,41,51,10),
                                             child: Center(
                                                 child: Column(
@@ -92,6 +92,9 @@ class _HomeState extends State<MyAppFav> {
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: <Widget>[
+                                                    Image.network(testDataGlobal[
+                                                    'item']
+                                                    ['icon_large']),
                                                     Container(
                                                       padding:
                                                           EdgeInsets.all(8.0),

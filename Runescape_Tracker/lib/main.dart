@@ -148,6 +148,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
 
         title: Text(appBarTitle),
+        /*
         actions: [
           StarButton(
             iconSize: 45,
@@ -156,6 +157,9 @@ class _HomeState extends State<Home> {
             },
           )
         ],
+
+         */
+
       ),
       body: PageView(
         scrollDirection: Axis.horizontal,
@@ -199,13 +203,16 @@ class _HomeState extends State<Home> {
                     context: context,
                     builder: (BuildContext context) {
                       return Container(
-                        height: 200,
+                        height: 300,
                         color: Color.fromRGBO(24,41,51,10),
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
+                              Image.network(testDataGlobal[
+                              'item']
+                              ['icon_large']),
                               Container(
                                 padding: EdgeInsets.all(8.0),
                                 child: Column(

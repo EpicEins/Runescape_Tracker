@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.runescape_tracker">
    <application
-        android:label="runescape_tracker"
-        android:icon="@mipmap/launcher_icon">
+        android:label="RS3 Tracker"
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

@@ -132,7 +132,7 @@ class _HomeState extends State<playerAlog> {
                 ),
                 IconButton(
                     onPressed: () async {
-                      testingCSV.clear();
+                      alogList.clear();
                       setState(() {
                         _searchBarController.clear();
                       });
