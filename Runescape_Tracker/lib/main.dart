@@ -1,26 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:async/async.dart';
+import 'package:runescape_tracker/adventuresLog.dart';
+import 'package:runescape_tracker/searchPlayer.dart';
 import 'db_helper.dart';
 import 'dart:io';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'favoriteRS3Search.dart';
+import 'package:intl/intl.dart';
+import 'testing.dart';
+import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'package:favorite_button/favorite_button.dart';
+import 'globalVars.dart';
+import 'package:search_page/search_page.dart';
+class Person {
+  final String name, description;
+  final String id;
 
-late Box box;
-
+  Person(this.name, this.description, this.id);
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Directory directory = await getApplicationDocumentsDirectory();
+  var futureItems = await DatabaseHelper.instance.getList();
+  await futureItems;
 
-  Hive.init(directory.path);
-  //await Hive.openBox("searchPlayer");
-  var deleteAll = await Hive.openBox("searchPlayer");
-  deleteAll.clear();
+  itemNames.clear();
+  for (var i in await futureItems) {
 
-  Hive.registerAdapter(PlayerAdapter());
-
+    itemNames.add(Person(i.name, i.description,i.id)
+    );
+  }
   runApp(const MyApp());
 }
 
@@ -29,12 +37,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          color: Color.fromRGBO(24,41,51,10),
+        ),
+      ),
+      debugShowCheckedModeBanner: false,
       home: Home(),
     );
   }
 }
-
+var items = [];
+var searchedPlayerName;
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -42,25 +57,41 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
-class searchedStats {
-  searchedStats({required this.id, required this.skills});
-
-  @HiveField(0)
-  int id;
-
-  @HiveField(1)
-  String skills;
-
-  @override
-  String toString() {
-    return id.toString();
-  }
-}
-
 class _HomeState extends State<Home> {
+  var appBarTitle = "Player Search";
 
-  late Box PlayerBox;
   var skillNames = {
+    30: "Overall",
+    0: "Attack",
+    1: "Defence",
+    2: "Strength",
+    3: "Constitution",
+    4: "Ranged",
+    5: "Prayer",
+    6: "Magic",
+    7: "Cooking",
+    8: "Woodcutting",
+    9: "Fletching",
+    10: "Fishing",
+    11: "Firemaking",
+    12: "Crafting",
+    13: "Smithing",
+    14: "Mining",
+    15: "Herblore",
+    16: "Agility",
+    17: "Thieving",
+    18: "Slayer",
+    19: "Farming",
+    20: "Runecrafting",
+    21: "Hunter",
+    22: "Construction",
+    23: "Summoning",
+    24: "Dungeoneering",
+    25: "Divination",
+    26: "Invention",
+    27: "Archaeology",
+  };
+  var skillNamesv2 = {
     0: "Overall",
     1: "Attack",
     2: "Defence",
@@ -91,205 +122,183 @@ class _HomeState extends State<Home> {
     27: "Invention",
     28: "Archaeology",
   };
-  final _idController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _playerVarController = TextEditingController();
+  NumberFormat myFormat = NumberFormat.decimalPattern('en_us');
+  var playerDataList = [];
+  var searchedName = '';
+
+  int _currentIndex = 0;
+  late PageController _pageController;
 
   @override
   void initState() {
-    PlayerBox = Hive.box("searchPlayer");
     super.initState();
+    fabHideOrShow = false;
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Runescape 3 Hiscores"),
+
+        title: Text(appBarTitle),
+        actions: [
+          StarButton(
+            iconSize: 45,
+            valueChanged: (isStarred) {
+              print('Is Favorite $isStarred)');
+            },
+          )
+        ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-                child: Center(
-                  child: ValueListenableBuilder(
-                    valueListenable: PlayerBox.listenable(),
-                    builder: (context, Box searchPlayer, _) {
-                      return ListView.separated(
-                        itemBuilder: (ctx, i) {
-                          final key = searchPlayer.keys.toList()[i];
-                          var value = searchPlayer.get(key);
-                          value = value.split(",");
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceEvenly,
+      body: PageView(
+        scrollDirection: Axis.horizontal,
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+          _pageController.jumpToPage(index);
+        },
+        controller: _pageController,
+        children: [
+          searchPlayer(),
+          MyAppFav(),
+          playerAlog(),
+        ],
+      ),
+      floatingActionButton: Visibility(
+        visible: fabHideOrShow,
+        child: FloatingActionButton(
+          backgroundColor: Color.fromRGBO(24,41,51,10),
+          child: Icon(Icons.search),
+          tooltip: 'Search Items',
+          onPressed: () => showSearch(
+            context: context,
+            delegate: SearchPage<Person>(
+              items: itemNames,
+              searchLabel: 'Search Items',
+              suggestion: Center(
+                child: Text('Filter people by name, surname or age'),
+              ),
+              failure: Center(
+                child: Text('No person found :('),
+              ),
+              filter: (person) => [
+                person.name,
+                person.description,
+                person.id.toString(),
+              ],
+              builder: (person) => ListTile(
+                onTap: () async {
+                  await searchGE(person.id);
+                  showModalBottomSheet<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Container(
+                        height: 200,
+                        color: Color.fromRGBO(24,41,51,10),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Container(
+                                padding: EdgeInsets.all(8.0),
+                                child: Column(
                                   children: [
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(
-                                                skillNames[key].toString()),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(value[1]),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(value[2]),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Center(
-                                          child: Container(
-                                            child: Text(value[0]),
-                                          ),
-                                        )),
-                                  ]),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (_, i) => const Divider(),
-                        itemCount: searchPlayer.keys.length,
+                                    Text(
+                                      testDataGlobal['item']['name'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      testDataGlobal['item']['description'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Text(
+                                      testDataGlobal['item']['current']
+                                          ['price'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                child: const Text('Close BottomSheet'),
+                                onPressed: () => Navigator.pop(context),
+                              )
+                            ],
+                          ),
+                        ),
                       );
                     },
-                  ),
-                )),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  child: const Text("Create"),
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (_) {
-                          return Dialog(
-                            child: SizedBox(
-                              height: 200,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        label: const Text("Key"),
-                                      ),
-                                      controller: _idController,
-                                    ),
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        label: Text("Value"),
-                                      ),
-                                      controller: _nameController,
-                                    ),
-                                    SizedBox(
-                                      height: 16,
-                                    ),
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          final key = _idController.text;
-                                          final value = _nameController.text;
-
-                                          PlayerBox.put(key, value);
-
-                                          _nameController.clear();
-                                          _idController.clear();
-
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text("Submit"))
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        });
-                  },
-                ),
-                ElevatedButton(
-                  child: const Text("Search"),
-                  onPressed: () async {
-                    showDialog(
-                        context: context,
-                        builder: (_) {
-                          return Dialog(
-                            child: SizedBox(
-                              height: 175,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    TextField(
-                                      decoration: InputDecoration(
-                                        label: const Text("Player Name"),
-                                      ),
-                                      controller: _playerVarController,
-                                    ),
-                                    SizedBox(
-                                      height: 16,
-                                    ),
-                                    ElevatedButton(
-                                        onPressed: () async {
-                                          final playerVar =
-                                              _playerVarController.text;
-
-                                          _playerVarController.clear();
-
-                                          Navigator.pop(context);
-                                          int counter = 0;
-                                          try {
-                                            var cleanPlayerVar = playerVar
-                                                .replaceAll(" ", "%20");
-                                            var runescapeAPIData = await http
-                                                .read(Uri.parse(
-                                                'https://secure.runescape.com/m=hiscore/index_lite.ws?player=$cleanPlayerVar'));
-                                            print(runescapeAPIData.runtimeType);
-                                            var splitRunescapeAPIData = runescapeAPIData
-                                                .split("\n");
-                                            var tempVar;
-                                            var key;
-                                            var value;
-                                            for (tempVar in splitRunescapeAPIData) {
-                                              if (counter < 29) {
-                                                key = counter;
-                                                value = tempVar;
-                                                //print("key is: $key");
-                                                //print("value is: $value");
-                                                counter += 1;
-                                                PlayerBox.put(key, value);
-                                              }
-                                            }
-                                          } catch (e) {
-                                            print(e);
-                                          }
-                                        },
-                                        child: const Text("Submit"))
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        });
-                  },
-                ),
-                ElevatedButton(
-                  child: const Text("Print"),
-                  onPressed: () {},
-                ),
-              ],
-            )
-          ],
+                  );
+                },
+                title: Text(person.name),
+                subtitle: Text(person.description),
+                trailing: Text('${person.id}'),
+              ),
+            ),
+          ),
         ),
+      ),
+
+      bottomNavigationBar: BottomNavyBar(
+        backgroundColor: Color.fromRGBO(24,41,51,10),
+        selectedIndex: _currentIndex,
+        onItemSelected: (index) {
+          setState(() => _currentIndex = index);
+          setState(() {
+            if (index == 0) {
+              appBarTitle = "Player Search";
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+              fabHideOrShow = false;
+            } else if (index == 1) {
+              appBarTitle = "Grand Exchange";
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+              fabHideOrShow = true;
+            } else if (index == 2) {
+              appBarTitle = "Player Adventure Log";
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+              fabHideOrShow = false;
+            }
+          });
+          _pageController.jumpToPage(index);
+        },
+        items: <BottomNavyBarItem>[
+          BottomNavyBarItem(
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+              title: const Text('Player Search'),
+              icon: Icon(Icons.person_outline)
+          ),
+          BottomNavyBarItem(
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+              title: Text('GE Search'),
+              icon: Icon(Icons.account_balance)
+          ),
+          BottomNavyBarItem(
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+              title: Text('Adventures Log'),
+              icon: Icon(Icons.people_alt)
+          ),
+        ],
       ),
     );
   }
-
 }
