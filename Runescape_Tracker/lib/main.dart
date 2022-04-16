@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:runescape_tracker/adventuresLog.dart';
 import 'package:runescape_tracker/searchPlayer.dart';
 import 'db_helper.dart';
 import 'dart:io';
@@ -28,7 +29,6 @@ Future<void> main() async {
     itemNames.add(Person(i.name, i.description,i.id)
     );
   }
-  print(itemNames);
   runApp(const MyApp());
 }
 
@@ -37,7 +37,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          color: Color.fromRGBO(24,41,51,10),
+        ),
+      ),
       debugShowCheckedModeBanner: false,
       home: Home(),
     );
@@ -53,6 +58,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  var appBarTitle = "Player Search";
+
   var skillNames = {
     30: "Overall",
     0: "Attack",
@@ -125,6 +132,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    fabHideOrShow = false;
     _pageController = PageController();
   }
 
@@ -138,7 +146,8 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("testing"),
+
+        title: Text(appBarTitle),
         actions: [
           StarButton(
             iconSize: 45,
@@ -156,87 +165,137 @@ class _HomeState extends State<Home> {
         },
         controller: _pageController,
         children: [
-          MyAppFav(),
           searchPlayer(),
+          MyAppFav(),
+          playerAlog(),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.search),
-        tooltip: 'Search Items',
-        onPressed: () => showSearch(
-          context: context,
-          delegate: SearchPage<Person>(
-            items: itemNames,
-            searchLabel: 'Search Items',
-            suggestion: Center(
-              child: Text('Filter people by name, surname or age'),
-            ),
-            failure: Center(
-              child: Text('No person found :('),
-            ),
-            filter: (person) => [
-              person.name,
-              person.description,
-              person.id.toString(),
-            ],
-            builder: (person) => ListTile(
-              onTap: () async {
-                await searchGE(person.id);
-                showModalBottomSheet<void>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Container(
-                      height: 200,
-                      color: Colors.amber,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text(testDataGlobal['item']['name']),
-                            Text(testDataGlobal['item']['description']),
-                            Text(testDataGlobal['item']['current']['price']),
-                            ElevatedButton(
-                              child: const Text('Close BottomSheet'),
-                              onPressed: () => Navigator.pop(context),
-                            )
-                          ],
+      floatingActionButton: Visibility(
+        visible: fabHideOrShow,
+        child: FloatingActionButton(
+          backgroundColor: Color.fromRGBO(24,41,51,10),
+          child: Icon(Icons.search),
+          tooltip: 'Search Items',
+          onPressed: () => showSearch(
+            context: context,
+            delegate: SearchPage<Person>(
+              items: itemNames,
+              searchLabel: 'Search Items',
+              suggestion: Center(
+                child: Text('Filter people by name, surname or age'),
+              ),
+              failure: Center(
+                child: Text('No person found :('),
+              ),
+              filter: (person) => [
+                person.name,
+                person.description,
+                person.id.toString(),
+              ],
+              builder: (person) => ListTile(
+                onTap: () async {
+                  await searchGE(person.id);
+                  showModalBottomSheet<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Container(
+                        height: 200,
+                        color: Color.fromRGBO(24,41,51,10),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Container(
+                                padding: EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      testDataGlobal['item']['name'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      testDataGlobal['item']['description'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Text(
+                                      testDataGlobal['item']['current']
+                                          ['price'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                child: const Text('Close BottomSheet'),
+                                onPressed: () => Navigator.pop(context),
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-              title: Text(person.name),
-              subtitle: Text(person.description),
-              trailing: Text('${person.id} yo'),
+                      );
+                    },
+                  );
+                },
+                title: Text(person.name),
+                subtitle: Text(person.description),
+                trailing: Text('${person.id}'),
+              ),
             ),
           ),
         ),
       ),
 
       bottomNavigationBar: BottomNavyBar(
+        backgroundColor: Color.fromRGBO(24,41,51,10),
         selectedIndex: _currentIndex,
         onItemSelected: (index) {
           setState(() => _currentIndex = index);
+          setState(() {
+            if (index == 0) {
+              appBarTitle = "Player Search";
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+              fabHideOrShow = false;
+            } else if (index == 1) {
+              appBarTitle = "Grand Exchange";
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+              fabHideOrShow = true;
+            } else if (index == 2) {
+              appBarTitle = "Player Adventure Log";
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+              fabHideOrShow = false;
+            }
+          });
           _pageController.jumpToPage(index);
         },
         items: <BottomNavyBarItem>[
           BottomNavyBarItem(
-              title: Text('Item One'),
-              icon: Icon(Icons.home)
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+              title: const Text('Player Search'),
+              icon: Icon(Icons.person_outline)
           ),
           BottomNavyBarItem(
-              title: Text('Item Two'),
-              icon: Icon(Icons.apps)
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+              title: Text('GE Search'),
+              icon: Icon(Icons.account_balance)
           ),
           BottomNavyBarItem(
-              title: Text('Item Three'),
-              icon: Icon(Icons.chat_bubble)
-          ),
-          BottomNavyBarItem(
-              title: Text('Item Four'),
-              icon: Icon(Icons.settings)
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+              title: Text('Adventures Log'),
+              icon: Icon(Icons.people_alt)
           ),
         ],
       ),

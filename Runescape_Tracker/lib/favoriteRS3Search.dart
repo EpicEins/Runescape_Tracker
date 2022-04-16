@@ -62,7 +62,7 @@ class _HomeState extends State<MyAppFav> {
                 flex: 8,
                 child: Center(
                   child: FutureBuilder<List<geItems>>(
-                      future: dataVar,
+                      future: DatabaseHelper.instance.getList(),
                       builder: (BuildContext context,
                           AsyncSnapshot<List<geItems>> snapshot) {
                         if (!snapshot.hasData) {
@@ -84,22 +84,61 @@ class _HomeState extends State<MyAppFav> {
                                         builder: (BuildContext context) {
                                           return Container(
                                             height: 200,
-                                            color: Colors.amber,
+                                            color: Color.fromRGBO(24,41,51,10),
                                             child: Center(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: <Widget>[
-                                                  Text(testDataGlobal['item']['name']),
-                                                  Text(testDataGlobal['item']['description']),
-                                                  Text(testDataGlobal['item']['current']['price']),
-                                                  ElevatedButton(
-                                                    child: const Text('Close BottomSheet'),
-                                                    onPressed: () => Navigator.pop(context),
-                                                  )
-                                                ],
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: <Widget>[
+                                                    Container(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      child: Column(
+                                                        children: [
+                                                          Text(
+                                                            testDataGlobal[
+                                                                'item']['name'],
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            testDataGlobal[
+                                                                    'item']
+                                                                ['description'],
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                            textAlign: TextAlign.center,
+                                                          ),
+                                                          Text(
+                                                            testDataGlobal['item']
+                                                                        [
+                                                                        'current']
+                                                                    ['price']
+                                                                .toString(),
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    ElevatedButton(
+                                                      child: const Text(
+                                                          'Close BottomSheet'),
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                    )
+                                                  ],
+                                                ),
                                               ),
-                                            ),
                                           );
                                         },
                                       );

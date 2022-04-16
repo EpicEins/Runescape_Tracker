@@ -17,7 +17,7 @@ class DatabaseHelper {
 
   static Database? _database;
   Future<Database> get database async => _database ??= await _initDatabase();
-/*
+
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
     var path = join(databasesPath, "exampleVersion2.db");
@@ -45,15 +45,15 @@ class DatabaseHelper {
       print("Opening existing database");
     }
 // open the database
-    var bomDataTable = await openDatabase(path, readOnly: true);
+    var bomDataTable = await openDatabase(path);
 
     return bomDataTable;
 
   }
 
- */
 
 
+/*
     Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'exampleVersion2.db');
@@ -70,6 +70,8 @@ class DatabaseHelper {
 
   }
 
+ */
+
 
 
   Future<List<geItems>> getList() async {
@@ -80,6 +82,15 @@ class DatabaseHelper {
         : [];
     return groceryList;
   }
+  Future<List<SkillValuesSQL>> getPlayerData() async {
+    Database db = await instance.database;
+    var organizedContent = await db.query('items', orderBy: 'name');
+    List<SkillValuesSQL> groceryList = organizedContent.isNotEmpty
+        ? organizedContent.map((c) => SkillValuesSQL.fromMap(c)).toList()
+        : [];
+    return groceryList;
+  }
+
   Future<List<geItems>> searchItems(searchedItem) async {
     Database db = await instance.database;
 
@@ -107,7 +118,7 @@ class DatabaseHelper {
 }
 
 class SkillValuesSQL {
-  final int? id;
+  var id;
   var level;
   var xp;
   var rank;

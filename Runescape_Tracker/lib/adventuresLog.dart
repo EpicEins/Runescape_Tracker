@@ -11,17 +11,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Directory directory = await getApplicationDocumentsDirectory();
 
-  runApp(const searchPlayer());
+  runApp(const playerAlog());
 }
 
-class searchPlayer extends StatefulWidget {
-  const searchPlayer({Key? key}) : super(key: key);
+class playerAlog extends StatefulWidget {
+  const playerAlog({Key? key}) : super(key: key);
 
   @override
   _HomeState createState() => _HomeState();
 }
 
-class _HomeState extends State<searchPlayer> {
+class _HomeState extends State<playerAlog> {
   var skillNames = {
     30: "Overall",
     0: "Attack",
@@ -113,35 +113,19 @@ class _HomeState extends State<searchPlayer> {
                       decoration: InputDecoration(
                         icon: Icon(Icons.search),
                       ),
-
                       controller: _searchBarController,
                       onSubmitted: (value) async {
                         final playerVar = _searchBarController.text;
                         testingCSV.clear();
                         var newPlayerVar = playerVar.replaceAll(" ", "%20");
-                        var boolName = await csvHiscores(newPlayerVar);
-                        if (boolName == true) {
-                          final snackBar = SnackBar(
-                            content: Text('No players named: $newPlayerVar'),
-                            action: SnackBarAction(
-                              label: 'Clear',
-                              onPressed: () {
-                                _searchBarController.clear();
-                              },
-                            ),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        } else {
-                          value = _searchBarController.text;
-                          //returnAlog(value);
+                        await returnAlog(newPlayerVar);
+                        value = _searchBarController.text;
+                        setState(() {
+
                           setState(() {
-
-                            setState(() {
-                              searchedName = playerVar;
-                            });
+                            searchedName = playerVar;
                           });
-                        }
-
+                        });
                       },
                     ),
                   ),
@@ -175,26 +159,32 @@ class _HomeState extends State<searchPlayer> {
             ),
             Expanded(
               flex: 8,
-              child: ListView.builder(
+              child: ListView.separated(
+                separatorBuilder: (context, index) => Divider(
+                  color: Colors.black,
+                ),
                 itemBuilder: (context, index) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all((8.0)),
                       child: Container(
-                        child: Row(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(child: Text(testingCSV[index][3])),
-                            Expanded(child: Text(myFormat.format(int.parse(testingCSV[index][0])))),
-                            Expanded(child: Text(testingCSV[index][1])),
-                            Expanded(child: Text(myFormat.format(int.parse(testingCSV[index][2])))),
+                            Text(alogList[index]['date']),
+                            Text(
+                              alogList[index]['details'],
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(alogList[index]['text']),
+
                           ],
                         ),
                       ),
                     ),
                   );
                 },
-                itemCount: testingCSV.length,
+                itemCount: alogList.length,
               ),
             )
 

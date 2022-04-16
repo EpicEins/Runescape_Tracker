@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:math';
 import 'db_helper.dart';
 import 'package:mysql1/mysql1.dart';
@@ -207,6 +208,7 @@ returnSkillList(playerName) async {
 }
 
 returnAlog(playerName) async{
+  alogList.clear();
   var runescapeAPIData = await http
       .read(Uri.parse(
       'https://apps.runescape.com/runemetrics/profile/profile?user=$playerName&activities=20'));
@@ -215,6 +217,7 @@ returnAlog(playerName) async{
   var user = User.fromJson(userMap);
 
   for (var i in user.activities) {
+    alogList.add(i);
     print(i);
   }
 }
@@ -252,3 +255,41 @@ testingSQL() async {
 // print(results);
 }
 
+csvHiscores(searchedPlayer) async {
+  testingCSV.clear();
+  //var getCSVHiscores = await http.read(Uri.parse('https://secure.runescape.com/m=hiscore/index_lite.ws?player=$searchedPlayer'));
+  var getCSVHiscores = await http.get(Uri.parse('https://secure.runescape.com/m=hiscore/index_lite.ws?player=$searchedPlayer'));
+  var badName = false;
+  if (getCSVHiscores.statusCode == 404){
+    //show snackbar
+    badName = true;
+  } else {
+    var getCSVHiscoresBody = getCSVHiscores.body;
+    var counter = 0;
+    final splitted = getCSVHiscoresBody.split('\n');
+    var newSplitted = [];
+    for (var i in splitted) {
+      // list of hiscores data is 29 long
+      if (counter < 29) {
+        newSplitted.add(i);
+        counter += 1;
+      } else {
+        null;
+      }
+    }
+    counter = 0;
+    for (var i in newSplitted) {
+      print(skillNamesv2[counter]! + ' ' + i);
+      var finalSplitted = i.split(',');
+
+      finalSplitted.add(skillNamesv2[counter]!);
+      print(finalSplitted);
+      testingCSV.add(finalSplitted);
+      counter += 1;
+    }
+  }
+  return badName;
+
+
+
+}
