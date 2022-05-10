@@ -227,6 +227,12 @@ searchGE(itemID) async {
   print(parsedData);
   testDataGlobal = parsedData;
 }
+searchGEOldschool(itemID) async {
+  var geItemAPIData = await http.read(Uri.parse('https://services.runescape.com/m=itemdb_oldschool/api/catalogue/detail.json?item=$itemID'));
+  var parsedData = jsonDecode(geItemAPIData);
+  print(parsedData);
+  testDataGlobal = parsedData;
+}
 
 testingSQL() async {
 /*
@@ -271,6 +277,44 @@ csvHiscores(searchedPlayer) async {
     for (var i in splitted) {
       // list of hiscores data is 29 long
       if (counter < 29) {
+        newSplitted.add(i);
+        counter += 1;
+      } else {
+        null;
+      }
+    }
+    counter = 0;
+    for (var i in newSplitted) {
+      print(skillNamesv2[counter]! + ' ' + i);
+      var finalSplitted = i.split(',');
+
+      finalSplitted.add(skillNamesv2[counter]!);
+      print(finalSplitted);
+      testingCSV.add(finalSplitted);
+      counter += 1;
+    }
+  }
+  return badName;
+
+
+
+}
+csvHiscoresOldschool(searchedPlayer) async {
+  testingCSV.clear();
+  //var getCSVHiscores = await http.read(Uri.parse('https://secure.runescape.com/m=hiscore/index_lite.ws?player=$searchedPlayer'));
+  var getCSVHiscores = await http.get(Uri.parse('https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=$searchedPlayer'));
+  var badName = false;
+  if (getCSVHiscores.statusCode == 404){
+    //show snackbar
+    badName = true;
+  } else {
+    var getCSVHiscoresBody = getCSVHiscores.body;
+    var counter = 0;
+    final splitted = getCSVHiscoresBody.split('\n');
+    var newSplitted = [];
+    for (var i in splitted) {
+      // list of hiscores data is 29 long
+      if (counter < 24) {
         newSplitted.add(i);
         counter += 1;
       } else {

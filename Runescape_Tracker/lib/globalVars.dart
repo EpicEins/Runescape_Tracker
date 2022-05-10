@@ -1,7 +1,9 @@
+import 'db_helper.dart';
 import 'main.dart';
 
 var testDataGlobal;
 List<Person> itemNames = [];
+List<Person> itemNamesOldschool = [];
 var testingCSV = [];
 var alogList = [];
 var skillNamesv2 = {
@@ -37,3 +39,7 @@ var skillNamesv2 = {
 };
 var appBarTitle;
 var fabHideOrShow = true;
+var switchVal = true;
+var oldschoolHide = false;
+var themeColor;
+List<geItems> groceryList = [];

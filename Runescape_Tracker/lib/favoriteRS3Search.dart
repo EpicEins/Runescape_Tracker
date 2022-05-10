@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'globalVars.dart';
 
+
 import 'main.dart';
 
 
@@ -84,7 +85,7 @@ class _HomeState extends State<MyAppFav> {
                                         builder: (BuildContext context) {
                                           return Container(
                                             height: 300,
-                                            color: Color.fromRGBO(24,41,51,10),
+                                            color: themeColor,
                                             child: Center(
                                                 child: Column(
                                                   mainAxisAlignment:

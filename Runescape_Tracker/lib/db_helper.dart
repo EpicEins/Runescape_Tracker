@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
+import 'globalVars.dart';
 
 import 'main.dart' as mainDart;
 
@@ -75,9 +76,27 @@ class DatabaseHelper {
 
 
   Future<List<geItems>> getList() async {
+    groceryList.clear();
+    if (switchVal == true) {
+      Database db = await instance.database;
+      var organizedContent = await db.query('items', orderBy: 'name');
+      groceryList = organizedContent.isNotEmpty
+          ? organizedContent.map((c) => geItems.fromMap(c)).toList()
+          : [];
+    } else if (switchVal == false) {
+      Database db = await instance.database;
+      var organizedContent = await db.query('itemsOldschool', orderBy: 'name');
+      groceryList = organizedContent.isNotEmpty
+          ? organizedContent.map((c) => geItems.fromMap(c)).toList()
+          : [];
+    }
+
+    return groceryList;
+  }
+  Future<List<geItems>> getListOldschool() async {
     Database db = await instance.database;
-    var organizedContent = await db.query('items', orderBy: 'name');
-    List<geItems> groceryList = organizedContent.isNotEmpty
+    var organizedContent = await db.query('itemsOldschool', orderBy: 'name');
+    groceryList = organizedContent.isNotEmpty
         ? organizedContent.map((c) => geItems.fromMap(c)).toList()
         : [];
     return groceryList;

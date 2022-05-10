@@ -18,15 +18,31 @@ class Person {
   Person(this.name, this.description, this.id);
 }
 Future<void> main() async {
+  checkThemeColor() {
+    if (switchVal == true) {
+      themeColor = Color.fromRGBO(24,41,51,10);
+    } else if (switchVal == false) {
+      themeColor = Color.fromRGBO(124,101,76, 10);
+    }
+  }
+  checkThemeColor();
   WidgetsFlutterBinding.ensureInitialized();
   Directory directory = await getApplicationDocumentsDirectory();
   var futureItems = await DatabaseHelper.instance.getList();
+  var futureItemsOldschool = await DatabaseHelper.instance.getListOldschool();
   await futureItems;
+  await futureItemsOldschool;
 
   itemNames.clear();
+  itemNamesOldschool.clear();
   for (var i in await futureItems) {
 
     itemNames.add(Person(i.name, i.description,i.id)
+    );
+  }
+  for (var i in await futureItemsOldschool) {
+
+    itemNamesOldschool.add(Person(i.name, i.description,i.id)
     );
   }
   runApp(const MyApp());
@@ -122,15 +138,23 @@ class _HomeState extends State<Home> {
     27: "Invention",
     28: "Archaeology",
   };
+
+  checkThemeColor() {
+    if (switchVal == true) {
+      themeColor = Color.fromRGBO(24,41,51,10);
+    } else if (switchVal == false) {
+      themeColor = Color.fromRGBO(124,101,76, 10);
+    }
+  }
   NumberFormat myFormat = NumberFormat.decimalPattern('en_us');
   var playerDataList = [];
   var searchedName = '';
-
   int _currentIndex = 0;
   late PageController _pageController;
 
   @override
   void initState() {
+    checkThemeColor();
     super.initState();
     fabHideOrShow = false;
     _pageController = PageController();
@@ -146,19 +170,20 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
+        backgroundColor: themeColor,
         title: Text(appBarTitle),
-        /*
+        
         actions: [
-          StarButton(
-            iconSize: 45,
-            valueChanged: (isStarred) {
-              print('Is Favorite $isStarred)');
-            },
-          )
+          Switch(value: switchVal, onChanged: (bool value) {
+            setState(() {
+              print(value);
+              switchVal = value;
+              checkThemeColor();
+            });
+          })
         ],
 
-         */
+         
 
       ),
       body: PageView(
@@ -177,91 +202,175 @@ class _HomeState extends State<Home> {
       floatingActionButton: Visibility(
         visible: fabHideOrShow,
         child: FloatingActionButton(
-          backgroundColor: Color.fromRGBO(24,41,51,10),
+          backgroundColor: themeColor,
           child: Icon(Icons.search),
           tooltip: 'Search Items',
-          onPressed: () => showSearch(
-            context: context,
-            delegate: SearchPage<Person>(
-              items: itemNames,
-              searchLabel: 'Search Items',
-              suggestion: Center(
-                child: Text('Filter people by name, surname or age'),
-              ),
-              failure: Center(
-                child: Text('No person found :('),
-              ),
-              filter: (person) => [
-                person.name,
-                person.description,
-                person.id.toString(),
-              ],
-              builder: (person) => ListTile(
-                onTap: () async {
-                  await searchGE(person.id);
-                  showModalBottomSheet<void>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return Container(
-                        height: 300,
-                        color: Color.fromRGBO(24,41,51,10),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Image.network(testDataGlobal[
-                              'item']
-                              ['icon_large']),
-                              Container(
-                                padding: EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      testDataGlobal['item']['name'],
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Text(
-                                      testDataGlobal['item']['description'],
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    Text(
-                                      testDataGlobal['item']['current']
+          onPressed: () {
+            if (switchVal == true) {
+              print("switchVal == true");
+              showSearch(
+                context: context,
+                delegate: SearchPage<Person>(
+                  items: itemNames,
+                  searchLabel: 'Search Items',
+                  suggestion: Center(
+                    child: Text('Filter people by name, surname or age'),
+                  ),
+                  failure: Center(
+                    child: Text('No person found :('),
+                  ),
+                  filter: (person) => [
+                    person.name,
+                    person.description,
+                    person.id.toString(),
+                  ],
+                  builder: (person) => ListTile(
+                    onTap: () async {
+                      await searchGE(person.id);
+                      showModalBottomSheet<void>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Container(
+                            height: 300,
+                            color: themeColor,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Image.network(testDataGlobal[
+                                  'item']
+                                  ['icon_large']),
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          testDataGlobal['item']['name'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          testDataGlobal['item']['description'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          testDataGlobal['item']['current']
                                           ['price'],
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                      ),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  ElevatedButton(
+                                    child: const Text('Close BottomSheet'),
+                                    onPressed: () => Navigator.pop(context),
+                                  )
+                                ],
                               ),
-                              ElevatedButton(
-                                child: const Text('Close BottomSheet'),
-                                onPressed: () => Navigator.pop(context),
-                              )
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-                title: Text(person.name),
-                subtitle: Text(person.description),
-                trailing: Text('${person.id}'),
-              ),
-            ),
-          ),
+                    title: Text(person.name),
+                    subtitle: Text(person.description),
+                    trailing: Text('${person.id}'),
+                  ),
+                ),
+              );
+            } else if (switchVal == false) {
+              print("switchVal == false");
+              showSearch(
+                context: context,
+                delegate: SearchPage<Person>(
+                  items: itemNamesOldschool,
+                  searchLabel: 'Search Items',
+                  suggestion: Center(
+                    child: Text('Filter people by name, surname or age'),
+                  ),
+                  failure: Center(
+                    child: Text('No person found :('),
+                  ),
+                  filter: (person) => [
+                    person.name,
+                    person.description,
+                    person.id.toString(),
+                  ],
+                  builder: (person) => ListTile(
+                    onTap: () async {
+                      await searchGEOldschool(person.id);
+                      showModalBottomSheet<void>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Container(
+                            height: 300,
+                            color: themeColor,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Image.network(testDataGlobal[
+                                  'item']
+                                  ['icon_large']),
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          testDataGlobal['item']['name'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          testDataGlobal['item']['description'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          testDataGlobal['item']['current']
+                                          ['price'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    child: const Text('Close BottomSheet'),
+                                    onPressed: () => Navigator.pop(context),
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    title: Text(person.name),
+                    subtitle: Text(person.description),
+                    trailing: Text('${person.id}'),
+                  ),
+                ),
+              );
+            }
+          }
         ),
       ),
 
       bottomNavigationBar: BottomNavyBar(
-        backgroundColor: Color.fromRGBO(24,41,51,10),
+        backgroundColor: themeColor,
         selectedIndex: _currentIndex,
         onItemSelected: (index) {
           setState(() => _currentIndex = index);

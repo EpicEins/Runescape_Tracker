@@ -119,29 +119,53 @@ class _HomeState extends State<searchPlayer> {
                         final playerVar = _searchBarController.text;
                         testingCSV.clear();
                         var newPlayerVar = playerVar.replaceAll(" ", "%20");
-                        var boolName = await csvHiscores(newPlayerVar);
-                        if (boolName == true) {
-                          final snackBar = SnackBar(
-                            content: Text('No players named: $newPlayerVar'),
-                            action: SnackBarAction(
-                              label: 'Clear',
-                              onPressed: () {
-                                _searchBarController.clear();
-                              },
-                            ),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        } else {
-                          value = _searchBarController.text;
-                          //returnAlog(value);
-                          setState(() {
-
+                        if (switchVal == false) { //search oldschool
+                          var boolName = await csvHiscoresOldschool(newPlayerVar);
+                          if (boolName == true) {
+                            final snackBar = SnackBar(
+                              content: Text('No players named: $newPlayerVar'),
+                              action: SnackBarAction(
+                                label: 'Clear',
+                                onPressed: () {
+                                  _searchBarController.clear();
+                                },
+                              ),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                          } else {
+                            value = _searchBarController.text;
+                            //returnAlog(value);
                             setState(() {
-                              searchedName = playerVar;
-                            });
-                          });
-                        }
 
+                              setState(() {
+                                searchedName = playerVar;
+                              });
+                            });
+                          }
+                        } else if (switchVal == true) { //search rs3
+                          var boolName = await csvHiscores(newPlayerVar);
+                          if (boolName == true) {
+                            final snackBar = SnackBar(
+                              content: Text('No players named: $newPlayerVar'),
+                              action: SnackBarAction(
+                                label: 'Clear',
+                                onPressed: () {
+                                  _searchBarController.clear();
+                                },
+                              ),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                          } else {
+                            value = _searchBarController.text;
+                            //returnAlog(value);
+                            setState(() {
+
+                              setState(() {
+                                searchedName = playerVar;
+                              });
+                            });
+                          }
+                        }
                       },
                     ),
                   ),
